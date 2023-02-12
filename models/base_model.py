@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """ A module to create a base model of Airbnb """
+from models import storage
 import uuid
 import datetime
 
@@ -7,17 +8,27 @@ import datetime
 class BaseModel:
     """ Defines all common attributes/methods for other classes """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """ Generate UUID with time created """
 
-        self.id = str(uuid.uuid4())
-        self.created_at = datetime.datetime.now()
-        self.updated_at = None
+        if kwargs:
+            for k, v in kwargs.items():
+                if (k != "__class__"):
+                    if (k == "updated_at") | (k == "created_at"):
+                        v = datetime.datetime.strptime(
+                                v, "%Y-%m-%dT%H:%M:%S.%f")
+                    setattr(self, k, v)
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.datetime.now()
+            self.updated_at = datetime.datetime.now()
+            storage.new(self)
 
     def save(self):
         """ Update UUID creation time """
 
         self.updated_at = datetime.datetime.now()
+        storage.save()
 
     def to_dict(self):
         """ returns a dictionary containing all keys/values of
